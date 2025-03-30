@@ -12,12 +12,10 @@ Grid:
 * TL - Top-left
 * TM - Top-middle
 * MM - Middle-middle
-* BM - Bottom-middlee
+* BM - Bottom-middle
 * BR - Bottom-right
 * MR - Middle-right
 * TR - Top-right
-
-## Row-Major to Peano Format
 
 Order:
 
@@ -48,4 +46,36 @@ This same puzzle is represented in the `peano` as:
 
 ```
 160725943186903572094618527186430057108025394057816493075186430610752934168009275
+```
+
+## Program: Row-Major to Peano Format
+
+Fortran program that converts row-major puzzle format to peano format.
+
+Run:
+
+```bash
+    make run_row_major_to_peano INPUT='467100805912835607085647192296351470708920351531408926073064510624519783159783064'
+```
+
+Expected result:
+
+```
+    160725943186903572094618527186430057108025394057816493075186430610752934168009275
+```
+
+## Program: Sudoku Solver
+
+Fortran program that solves sudoku puzzles from peano-formatted input strings.
+
+Run:
+
+```bash
+    make run_sudoku_solver INPUT='467100805912835607085647192296351470708920351531408926073064510624519783159783064'
+```
+
+Expected result:
+
+```
+    168725943186943572394618527186439257168725394257816493275186439618752934168349275
 ```
