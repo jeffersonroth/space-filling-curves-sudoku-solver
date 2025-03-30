@@ -179,4 +179,17 @@ contains
       
       end subroutine string_to_matrix
 
+      !> Converts a string (puzzle) to a dimension(81) array.
+      subroutine string_to_array(input_string, output_matrix)
+          implicit none
+          character(len=81), intent(in) :: input_string
+          integer, dimension(81), intent(out) :: output_matrix
+          integer :: i
+        
+          do i = 1, 81
+            read(input_string(i:i), '(i1)') output_matrix(i)
+          end do
+        
+        end subroutine string_to_array
+
 end module grid

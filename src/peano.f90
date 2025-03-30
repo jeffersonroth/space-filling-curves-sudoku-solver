@@ -8,6 +8,21 @@ module peano
 
 contains
 
+    subroutine solve_cell(index, input_matrix, output_matrix)
+        implicit none
+        integer, intent(in) :: index ! Array's index.
+        integer, dimension(81), intent(in) :: input_matrix ! Output Peano array.
+        integer, dimension(81), intent(out) :: output_matrix ! Output Peano array.
+
+        output_matrix = input_matrix
+
+        if (output_matrix(index) == 0) then 
+            ! logic here
+        end if
+
+
+    end subroutine solve_cell
+
     subroutine solve(input_string, output_string)
         implicit none
         character(len=81), intent(in) :: input_string ! Assume already in peano format.
@@ -23,6 +38,10 @@ contains
         end do
 
         call matrix_to_string(transformed_matrix, output_string)
+
+        do i = 1, 81
+            call solve_cell(i, transformed_matrix, transformed_matrix)
+        end do
 
         print *, "Output string:", output_string
 
