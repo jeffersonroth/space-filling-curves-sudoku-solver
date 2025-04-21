@@ -28,4 +28,9 @@ add_test(NAME test_grid_blocks
 )
 
 add_executable(test_format_conversions test_format_conversions.f90)
-target_link_libraries(test_format_conversions common) 
+target_link_libraries(test_format_conversions common)
+
+# Add test registration for test_format_conversions
+add_test(NAME test_format_conversions
+    COMMAND test_format_conversions
+) 

@@ -10,7 +10,7 @@ contains
     subroutine test_grid_blocks()
         type(Grid) :: test_grid
         type(Block) :: block
-        integer :: i, j, block_row, block_col
+        integer :: i, j, k, block_row, block_col
         logical :: is_valid
         integer, dimension(3,3) :: actual_block
         integer, dimension(3,3,3,3) :: expected_blocks
@@ -30,13 +30,13 @@ contains
 
         ! Define expected blocks in 3x3 format
         ! Bottom row
-        expected_blocks(3,1,:,:) = reshape([ &  ! BL
+        expected_blocks(1,3,:,:) = reshape([ &
             0, 7, 3, &
             6, 2, 4, &
             1, 5, 9  &
         ], [3,3])  ! BL
 
-        expected_blocks(3,2,:,:) = reshape([ &  ! BM
+        expected_blocks(2,3,:,:) = reshape([ &  ! BM
             0, 6, 4, &
             5, 1, 9, &
             7, 8, 3  &
@@ -49,7 +49,7 @@ contains
         ], [3,3])  ! BR
 
         ! Middle row
-        expected_blocks(2,1,:,:) = reshape([ &  ! ML
+        expected_blocks(1,2,:,:) = reshape([ &  ! ML
             2, 9, 6, &
             7, 0, 8, &
             5, 3, 1  &
@@ -61,7 +61,7 @@ contains
             4, 0, 8  &
         ], [3,3])  ! MM
 
-        expected_blocks(2,3,:,:) = reshape([ &  ! MR
+        expected_blocks(3,2,:,:) = reshape([ &  ! MR
             4, 7, 0, &
             3, 5, 1, &
             9, 2, 6  &
@@ -74,13 +74,13 @@ contains
             0, 8, 5  &
         ], [3,3])  ! TL
 
-        expected_blocks(1,2,:,:) = reshape([ &  ! TM
+        expected_blocks(2,1,:,:) = reshape([ &  ! TM
             1, 0, 0, &
             8, 3, 5, &
             6, 4, 7  &
         ], [3,3])  ! TM
 
-        expected_blocks(1,3,:,:) = reshape([ &  ! TR
+        expected_blocks(3,1,:,:) = reshape([ &  ! TR
             8, 0, 5, &
             6, 0, 7, &
             1, 9, 2  &
@@ -92,10 +92,16 @@ contains
                 actual_block = get_block(test_grid, block_row, block_col)
                 do i = 1, 3
                     do j = 1, 3
-                        if (actual_block(i,j) /= expected_blocks(block_row,block_col,i,j)) then
+                        if (actual_block(j,i) /= expected_blocks(block_row,block_col,j,i)) then
                             print *, "Test failed: Block mismatch at position (", block_row, ",", block_col, ")"
-                            print *, "Expected:", expected_blocks(block_row,block_col,:,:)
-                            print *, "Got:", actual_block
+                            print *, "Expected:"
+                            do k = 1, 3
+                                print *, expected_blocks(block_col,block_row,k,:)
+                            end do
+                            print *, "Got:"
+                            do k = 1, 3
+                                print *, actual_block(k,:)
+                            end do
                             return
                         end if
                     end do
