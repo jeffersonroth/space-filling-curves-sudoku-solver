@@ -1,46 +1,80 @@
 program row_major_to_peano
-    use grid
+    use grid_interface
+    use grid3x3, only: Grid3x3
+    use grid2x2, only: Grid2x2
+    use utils
     implicit none
-    character(len=81) :: input_string ! Input string in row-major format.
-    character(len=81) :: output_string ! Output string in peano format.
-    integer, dimension(9, 9) :: transformed_matrix ! Input row-major string input in 9x9 format.
-    integer :: iargc !, i, j
+    
+    character(len=:), allocatable :: input_string
+    character(len=:), allocatable :: output_string
+    integer :: grid_size
+    integer :: iargc
     character(len=256) :: arg_long
-    character(len=81) :: arg
+    character(len=:), allocatable :: arg
+    class(AbstractGrid), allocatable :: grid
 
     iargc = command_argument_count()
 
-    if (iargc < 1) then
-        print *, "Usage: ./row_major_to_peano <81-digit_sudoku_string>"
-        stop 1 ! Use non-zero exit code for error
+    if (iargc < 2) then
+        print *, "Usage: ./row_major_to_peano <sudoku_string> <grid_size>"
+        print *, "  grid_size: 2 for 2x2, 3 for 3x3"
+        stop 1
     end if
 
-    call get_command_argument(1, arg_long)
-    arg = trim(arg_long) ! Assign trimmed version to arg
+    ! Get grid size
+    call get_command_argument(2, arg_long)
+    read(arg_long, *) grid_size
+    
+    if (grid_size /= 2 .and. grid_size /= 3) then
+        print *, "Error: Grid size must be 2 or 3"
+        stop 2
+    end if
 
-    if (len(arg) /= 81) then ! Use len instead of len_trim after trimming
-        print *, "Error: Input string must be exactly 81 digits long."
+    ! Get input string
+    call get_command_argument(1, arg_long)
+    arg = trim(arg_long)
+
+    ! Validate input string length
+    if (grid_size == 2 .and. len(arg) /= 16) then
+        print *, "Error: For 2x2 grid, input string must be exactly 16 digits long."
         print *, "Length of input:", len(arg)
-        print *, "Input string:", arg
-        stop 2 ! Use non-zero exit code for error
+        stop 3
+    else if (grid_size == 3 .and. len(arg) /= 81) then
+        print *, "Error: For 3x3 grid, input string must be exactly 81 digits long."
+        print *, "Length of input:", len(arg)
+        stop 3
+    end if
+
+    ! Allocate strings based on grid size
+    if (grid_size == 2) then
+        allocate(character(len=16) :: input_string)
+        allocate(character(len=16) :: output_string)
+        allocate(Grid2x2 :: grid)
+    else
+        allocate(character(len=81) :: input_string)
+        allocate(character(len=81) :: output_string)
+        allocate(Grid3x3 :: grid)
     end if
 
     input_string = arg
 
-    ! print *, "Input string (row-major): ", trim(input_string)
+    ! Convert string to grid
+    select type(grid)
+        type is (Grid2x2)
+            call grid%initialize(convert_string_to_grid(input_string, 2))
+        type is (Grid3x3)
+            call grid%initialize(convert_string_to_grid(input_string, 3))
+    end select
 
-    call string_to_matrix(input_string, transformed_matrix)
+    ! Convert grid to Peano-ordered string
+    output_string = convert_grid_to_string(grid%data, grid_size)
 
-    ! print *, "Transformed Matrix:"
-    ! do i = 1, 9
-    !     write(*, '(9i1)') transformed_matrix(i, :)
-    ! end do
-
-    call matrix_to_string(transformed_matrix, output_string)
-
-    ! print *, "Output string (Peano order): ", trim(output_string)
-
-    ! Use formatted print (A specification)
+    ! Print result
     print '(A)', trim(output_string)
+
+    ! Clean up
+    deallocate(input_string)
+    deallocate(output_string)
+    deallocate(grid)
 
 end program row_major_to_peano
