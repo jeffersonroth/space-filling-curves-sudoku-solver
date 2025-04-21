@@ -3,76 +3,89 @@
 # Compiler
 FC = gfortran
 
-# Compiler flags (optional, but good practice)
+# Compiler flags
 FFLAGS = -Wall -Wextra -pedantic -fimplicit-none
 
-# Source directory
+# Directories
 SRCDIR = src
+COMMONDIR = $(SRCDIR)/common
+GRID3X3DIR = $(SRCDIR)/grid3x3
+GRID2X2DIR = $(SRCDIR)/grid2x2
+MAINDIR = $(SRCDIR)/main
+BUILDDIR = build
 
-# Executable for row_major_to_peano
-ROW_MAJOR_TO_PEANO_EXECUTABLE = row_major_to_peano
-ROW_MAJOR_TO_PEANO_PROGRAM_SOURCE = $(SRCDIR)/row_major_to_peano.f90
-ROW_MAJOR_TO_PEANO_PROGRAM_OBJECT = $(ROW_MAJOR_TO_PEANO_PROGRAM_SOURCE:.f90=.o)
+# Create build directory if it doesn't exist
+$(shell mkdir -p $(BUILDDIR))
 
-# Executable for sudoku_solver
-SUDOKU_SOLVER_EXECUTABLE = sudoku_solver
-SUDOKU_SOLVER_PROGRAM_SOURCE = $(SRCDIR)/sudoku_solver.f90
-SUDOKU_SOLVER_PROGRAM_OBJECT = $(SUDOKU_SOLVER_PROGRAM_SOURCE:.f90=.o)
+# Common module sources
+COMMON_SOURCES = $(COMMONDIR)/grid_interface.f90 $(COMMONDIR)/utils.f90
 
-# Module source files
-MODULE_SOURCES = $(SRCDIR)/grid.f90 $(SRCDIR)/peano.f90
+# Grid-specific module sources
+GRID3X3_SOURCES = $(GRID3X3DIR)/grid.f90 $(GRID3X3DIR)/peano.f90
+GRID2X2_SOURCES = $(GRID2X2DIR)/grid.f90 $(GRID2X2DIR)/peano.f90
 
-# Module object files (automatically generated)
-MODULE_OBJECTS = $(MODULE_SOURCES:.f90=.o)
+# Main program sources
+MAIN_SOURCES = $(MAINDIR)/sudoku_solver.f90 $(MAINDIR)/row_major_to_peano.f90
 
-# Module files (for cleaning)
-MODULE_FILES = $(MODULE_SOURCES:.f90=.mod)
+# Object files
+COMMON_OBJECTS = $(patsubst $(COMMONDIR)/%.f90,$(BUILDDIR)/%.o,$(COMMON_SOURCES))
+GRID3X3_OBJECTS = $(patsubst $(GRID3X3DIR)/%.f90,$(BUILDDIR)/%.o,$(GRID3X3_SOURCES))
+GRID2X2_OBJECTS = $(patsubst $(GRID2X2DIR)/%.f90,$(BUILDDIR)/%.o,$(GRID2X2_SOURCES))
+MAIN_OBJECTS = $(patsubst $(MAINDIR)/%.f90,$(BUILDDIR)/%.o,$(MAIN_SOURCES))
 
-all: $(ROW_MAJOR_TO_PEANO_EXECUTABLE) $(SUDOKU_SOLVER_EXECUTABLE) 
+# Module files
+MODULE_FILES = $(BUILDDIR)/*.mod
 
-# Rule to compile module source files
-%.o: %.f90
-	$(FC) $(FFLAGS) -c $< -o $@
+# Executables
+EXECUTABLES = sudoku_solver row_major_to_peano
 
-# Rule to compile the main program for row_major_to_peano
-$(ROW_MAJOR_TO_PEANO_PROGRAM_OBJECT): $(ROW_MAJOR_TO_PEANO_PROGRAM_SOURCE) $(MODULE_OBJECTS)
-	$(FC) $(FFLAGS) -c $(ROW_MAJOR_TO_PEANO_PROGRAM_SOURCE) -o $@
+# Default target
+all: $(EXECUTABLES)
 
-# Rule to link the row_major_to_peano executable
-$(ROW_MAJOR_TO_PEANO_EXECUTABLE): $(ROW_MAJOR_TO_PEANO_PROGRAM_OBJECT) $(MODULE_OBJECTS)
-	$(FC) $(FFLAGS) $(ROW_MAJOR_TO_PEANO_PROGRAM_OBJECT) $(MODULE_OBJECTS) -o $@
+# Rule to compile common modules
+$(BUILDDIR)/%.o: $(COMMONDIR)/%.f90
+	$(FC) $(FFLAGS) -J$(BUILDDIR) -c $< -o $@
 
-# Rule to compile the main program for sudoku_solver
-$(SUDOKU_SOLVER_PROGRAM_OBJECT): $(SUDOKU_SOLVER_PROGRAM_SOURCE) $(MODULE_OBJECTS)
-	$(FC) $(FFLAGS) -c $(SUDOKU_SOLVER_PROGRAM_SOURCE) -o $@
+# Rule to compile 3x3 grid modules
+$(BUILDDIR)/%.o: $(GRID3X3DIR)/%.f90 $(COMMON_OBJECTS)
+	$(FC) $(FFLAGS) -J$(BUILDDIR) -c $< -o $@
 
-# Rule to link the sudoku_solver executable
-$(SUDOKU_SOLVER_EXECUTABLE): $(SUDOKU_SOLVER_PROGRAM_OBJECT) $(MODULE_OBJECTS)
-	$(FC) $(FFLAGS) $(SUDOKU_SOLVER_PROGRAM_OBJECT) $(MODULE_OBJECTS) -o $@
+# Rule to compile 2x2 grid modules
+$(BUILDDIR)/%.o: $(GRID2X2DIR)/%.f90 $(COMMON_OBJECTS)
+	$(FC) $(FFLAGS) -J$(BUILDDIR) -c $< -o $@
 
-run_row_major_to_peano: $(ROW_MAJOR_TO_PEANO_EXECUTABLE)
+# Rule to compile main programs
+$(BUILDDIR)/%.o: $(MAINDIR)/%.f90 $(COMMON_OBJECTS) $(GRID3X3_OBJECTS) $(GRID2X2_OBJECTS)
+	$(FC) $(FFLAGS) -J$(BUILDDIR) -c $< -o $@
+
+# Rule to link executables
+sudoku_solver: $(BUILDDIR)/sudoku_solver.o $(COMMON_OBJECTS) $(GRID3X3_OBJECTS) $(GRID2X2_OBJECTS)
+	$(FC) $(FFLAGS) $^ -o $@
+
+row_major_to_peano: $(BUILDDIR)/row_major_to_peano.o $(COMMON_OBJECTS) $(GRID3X3_OBJECTS) $(GRID2X2_OBJECTS)
+	$(FC) $(FFLAGS) $^ -o $@
+
+# Run targets
+run_row_major_to_peano: row_major_to_peano
 	@echo "Running the row_major_to_peano program:"
-	@echo "Usage: make run_row_major_to_peano INPUT='<81-digit_sudoku_string>'"
-	@echo "Example: make run_row_major_to_peano INPUT='467100805912835607085647192296351470708920351531408926073064510624519783159783064'"
-	@echo "Example answer: '160725943186903572094618527186430057108025394057816493075186430610752934168009275'"
-	@if [ -n "$(INPUT)" ]; then \
-		./$(ROW_MAJOR_TO_PEANO_EXECUTABLE) "$(INPUT)"; \
+	@echo "Usage: make run_row_major_to_peano INPUT='<sudoku_string>' GRID_SIZE=<2|3>"
+	@if [ -n "$(INPUT)" ] && [ -n "$(GRID_SIZE)" ]; then \
+		./row_major_to_peano "$(INPUT)" "$(GRID_SIZE)"; \
 	else \
-		echo "Error: Please provide an 81-digit Sudoku string using INPUT='<string>'"; \
+		echo "Error: Please provide INPUT and GRID_SIZE (2 or 3)"; \
 	fi
 
-run_sudoku_solver: $(SUDOKU_SOLVER_EXECUTABLE)
+run_sudoku_solver: sudoku_solver
 	@echo "Running the sudoku_solver program:"
-	@echo "Usage: make sudoku_solver INPUT='<81-digit_sudoku_string>'"
-	@echo "Example: make run_sudoku_solver INPUT='467100805912835607085647192296351470708920351531408926073064510624519783159783064'"
-	@echo "Example answer: '168725943186943572394618527186439257168725394257816493275186439618752934168349275'"
-	@if [ -n "$(INPUT)" ]; then \
-		./$(SUDOKU_SOLVER_EXECUTABLE) "$(INPUT)"; \
+	@echo "Usage: make run_sudoku_solver INPUT='<sudoku_string>' GRID_SIZE=<2|3>"
+	@if [ -n "$(INPUT)" ] && [ -n "$(GRID_SIZE)" ]; then \
+		./sudoku_solver "$(INPUT)" "$(GRID_SIZE)"; \
 	else \
-		echo "Error: Please provide an 81-digit Sudoku string using INPUT='<string>'"; \
+		echo "Error: Please provide INPUT and GRID_SIZE (2 or 3)"; \
 	fi
 
+# Clean target
 clean:
-	rm -f $(ROW_MAJOR_TO_PEANO_EXECUTABLE) $(SUDOKU_SOLVER_EXECUTABLE) $(MODULE_FILES) $(MODULE_OBJECTS) $(ROW_MAJOR_TO_PEANO_PROGRAM_OBJECT) *.o *.mod *.exe
+	rm -f $(EXECUTABLES) $(MODULE_FILES) $(BUILDDIR)/*.o
 
 .PHONY: all clean run_row_major_to_peano run_sudoku_solver

@@ -1,0 +1,139 @@
+---
+description: Fortran Programming Guidelines
+globs: **/*.f, **/*.f90, **/*.f95, **/*.f03, **/*.f08, **/*.f18, CMakeLists.txt, *.cmake, Makefile
+alwaysApply: false
+---
+
+# Fortran Programming Guidelines
+
+## Basic Principles
+
+- Use English for all code and documentation
+- Always declare variables explicitly with their types
+- Use IMPLICIT NONE in all program units
+- Follow the Fortran standard (F90, F95, F2003, F2008, F2018) consistently
+- Use meaningful variable and procedure names
+- Document public interfaces and procedures
+- Keep procedures focused and single-purpose
+
+## Nomenclature
+
+- Use PascalCase for derived types and modules
+- Use snake_case for variables, procedures, and functions
+- Use UPPERCASE for named constants and parameters
+- Use descriptive names that indicate purpose
+- Avoid single-letter variable names except for loop indices
+- Use meaningful prefixes for derived type components
+- Use verbs for procedure names
+- Use is_ prefix for logical functions
+
+## Code Organization
+
+- Use modules to organize related procedures and data
+- Keep modules focused and cohesive
+- Use public/private declarations to control visibility
+- Separate interface from implementation
+- Use include files sparingly and only for common declarations
+- Organize source files by functionality
+- Use consistent file extensions (.f90 for free-form, .f for fixed-form)
+
+## Data Management
+
+- Use derived types for complex data structures
+- Initialize variables explicitly
+- Use allocatable arrays for dynamic memory
+- Deallocate memory when no longer needed
+- Use intent(in), intent(out), intent(inout) for procedure arguments
+- Use parameter for constants
+- Use save attribute only when necessary
+- Prefer pure and elemental procedures when possible
+
+## Control Structures
+
+- Use do loops with meaningful loop variable names
+- Use select case for multiple conditions
+- Use if-then-else for binary decisions
+- Keep nesting levels minimal
+- Use exit and cycle statements judiciously
+- Use block constructs for scope control
+- Use associate for temporary variable naming
+
+## Error Handling
+
+- Use error codes or status flags for expected errors
+- Use stop for unrecoverable errors
+- Use error_unit for error messages
+- Check array bounds and allocation status
+- Validate input parameters
+- Use iostat and iomsg for I/O operations
+
+## Performance
+
+- Use array operations instead of loops when possible
+- Use contiguous arrays for better performance
+- Use intent(in) for read-only arguments
+- Use intent(out) for write-only arguments
+- Use intent(inout) only when necessary
+- Use elemental procedures for array operations
+- Use do concurrent for parallelizable loops
+- Profile code to identify bottlenecks
+
+## Documentation
+
+- Use descriptive comments for complex algorithms
+- Document procedure interfaces
+- Document module contents
+- Use consistent comment style
+- Document assumptions and limitations
+- Document side effects
+- Use doxygen-style comments for public interfaces
+
+## Modern Fortran Features
+
+- Use allocatable arrays instead of pointers when possible
+- Use assumed-shape arrays for array arguments
+- Use assumed-rank arrays for generic procedures
+- Use coarrays for parallel programming
+- Use type-bound procedures for object-oriented programming
+- Use abstract interfaces for procedure pointers
+- Use parameterized derived types when appropriate
+
+## Testing
+
+- Write unit tests for procedures
+- Use test frameworks like pFUnit
+- Test edge cases and error conditions
+- Document test cases
+- Use assertions for debugging
+- Profile performance tests
+- Maintain test coverage
+
+## Build System
+
+- Use CMake or Make for building
+- Separate build directory from source
+- Use consistent compiler flags
+- Enable warnings and treat them as errors
+- Use optimization flags for production
+- Use debug flags for development
+- Document build requirements
+
+## Version Control
+
+- Use meaningful commit messages
+- Keep commits focused and atomic
+- Use branches for features and fixes
+- Review code before merging
+- Document major changes
+- Tag releases
+- Maintain changelog
+
+## Project Structure
+
+- Organize source files by functionality
+- Use consistent directory structure
+- Separate test code from production code
+- Use build scripts for automation
+- Document project structure
+- Use consistent naming conventions
+- Maintain README and documentation
