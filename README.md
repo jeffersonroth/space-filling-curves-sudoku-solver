@@ -1,5 +1,80 @@
-# space-filling-curves-sudoku-solver
-Space-filling curves sudoku solver
+# Space-Filling Curves Sudoku Solver
+
+A Fortran implementation of a Sudoku solver using space-filling curves for grid traversal.
+
+## Project Structure
+
+```
+.
+├── src/
+│   ├── common/          # Common utilities and interfaces
+│   └── test/            # Test programs
+├── build/               # Build directory (created during build)
+└── docs/                # Documentation
+```
+
+## Prerequisites
+
+- CMake (version 3.10 or higher)
+- GNU Fortran compiler (gfortran)
+- Make
+
+## Building the Project
+
+The project uses CMake for building and includes a Makefile for convenience. To build and run the tests:
+
+```bash
+# Build and run tests
+make test
+
+# Clean build directory
+make clean
+
+# Rebuild everything
+make rebuild
+```
+
+### Available Make Commands
+
+- `make` - Build the project
+- `make test` - Build and run tests
+- `make clean` - Remove build directory
+- `make rebuild` - Clean and rebuild project
+- `make help` - Show available commands
+
+## Running Tests
+
+The test suite includes:
+
+- Grid interface tests
+- Space-filling curve traversal tests
+- Sudoku solving tests
+
+To run all tests:
+```bash
+make test
+```
+
+## Development
+
+### Code Style
+
+The project follows modern Fortran best practices:
+- Uses free-form Fortran (.f90)
+- Implements IMPLICIT NONE
+- Uses modules for code organization
+- Follows consistent naming conventions
+
+### Adding New Features
+
+1. Create new source files in the appropriate directory
+2. Update CMakeLists.txt if adding new source files
+3. Add tests for new functionality
+4. Build and test using `make test`
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Conventions
 
