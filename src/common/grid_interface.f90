@@ -3,18 +3,15 @@ module GridInterface
     private
 
     ! Public types and procedures
-    public :: Grid, RowMajorGrid, GRID_SIZE, EMPTY_CELL
+    public :: Grid, RowMajorGrid, GRID_SIZE, EMPTY_CELL, to_row_major, to_grid, is_valid
 
     ! Constants
     integer, parameter :: GRID_SIZE = 9
     integer, parameter :: EMPTY_CELL = 0
 
     ! Grid type definition
-    type :: Grid
-        integer, dimension(GRID_SIZE, GRID_SIZE) :: cells
-    contains
-        procedure :: to_row_major
-        procedure :: is_valid
+    type, public :: Grid
+        integer, dimension(9, 9) :: cells
     end type Grid
 
     ! Row-major grid type definition

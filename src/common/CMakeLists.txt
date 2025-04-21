@@ -2,6 +2,7 @@
 add_library(common
     utils.f90
     grid_interface.f90
+    grid_blocks.f90
     format_conversions.f90
 )
 
