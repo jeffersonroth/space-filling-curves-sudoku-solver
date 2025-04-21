@@ -1,85 +1,65 @@
 program sudoku_solver
-    use grid_interface
-    use grid3x3, only: Grid3x3
-    use grid2x2, only: Grid2x2
     use utils
+    use grid_interface
+    use grid3x3_module
+    use grid2x2_module
     implicit none
-    
-    character(len=:), allocatable :: input_string
-    character(len=:), allocatable :: output_string
+
+    character(len=:), allocatable :: input_string, output_string
     integer :: grid_size
-    integer :: iargc
-    character(len=256) :: arg_long
-    character(len=:), allocatable :: arg
-    class(AbstractGrid), allocatable :: grid
+    integer, dimension(:,:), allocatable :: grid
+    class(AbstractGrid), allocatable :: sudoku_grid
 
-    iargc = command_argument_count()
-
-    if (iargc < 2) then
-        print *, "Usage: ./sudoku_solver <sudoku_string> <grid_size>"
+    ! Read input from command line
+    if (command_argument_count() /= 2) then
+        print *, "Usage: sudoku_solver <grid_size> <input_string>"
         print *, "  grid_size: 2 for 2x2, 3 for 3x3"
-        stop 1
+        print *, "  input_string: row-major string representation of the grid"
+        stop
     end if
 
     ! Get grid size
-    call get_command_argument(2, arg_long)
-    read(arg_long, *) grid_size
-    
-    if (grid_size /= 2 .and. grid_size /= 3) then
-        print *, "Error: Grid size must be 2 or 3"
-        stop 2
-    end if
+    call get_command_argument(1, input_string)
+    read(input_string, *) grid_size
 
     ! Get input string
-    call get_command_argument(1, arg_long)
-    arg = trim(arg_long)
+    call get_command_argument(2, input_string)
 
-    ! Validate input string length
-    if (grid_size == 2 .and. len(arg) /= 16) then
-        print *, "Error: For 2x2 grid, input string must be exactly 16 digits long."
-        print *, "Length of input:", len(arg)
-        stop 3
-    else if (grid_size == 3 .and. len(arg) /= 81) then
-        print *, "Error: For 3x3 grid, input string must be exactly 81 digits long."
-        print *, "Length of input:", len(arg)
-        stop 3
+    ! Validate grid size
+    if (grid_size /= 2 .and. grid_size /= 3) then
+        print *, "Error: grid_size must be 2 or 3"
+        stop
     end if
 
-    ! Allocate strings based on grid size
+    ! Allocate and initialize grid
     if (grid_size == 2) then
-        allocate(character(len=16) :: input_string)
-        allocate(character(len=16) :: output_string)
-        allocate(Grid2x2 :: grid)
+        allocate(Grid2x2 :: sudoku_grid)
     else
-        allocate(character(len=81) :: input_string)
-        allocate(character(len=81) :: output_string)
-        allocate(Grid3x3 :: grid)
+        allocate(Grid3x3 :: sudoku_grid)
     end if
 
-    input_string = arg
+    ! Initialize grid with input string
+    grid = convert_string_to_grid(input_string, grid_size)
+    call sudoku_grid%initialize(grid)
 
-    ! Convert string to grid and solve
-    select type(grid)
-        type is (Grid2x2)
-            call grid%initialize(convert_string_to_grid(input_string, 2))
-        type is (Grid3x3)
-            call grid%initialize(convert_string_to_grid(input_string, 3))
-    end select
-
-    if (.not. grid%solve()) then
-        print *, "Error: Failed to solve the Sudoku puzzle"
-        stop 4
+    ! Solve Sudoku
+    if (sudoku_grid%solve()) then
+        ! Convert solution to appropriate curve format
+        grid = sudoku_grid%get_data()
+        if (grid_size == 2) then
+            output_string = convert_grid_to_hilbert(grid, 2)
+        else
+            output_string = convert_grid_to_peano(grid, 3)
+        end if
+        
+        ! Write output
+        print *, trim(output_string)
+    else
+        print *, "No solution found"
+        stop 1
     end if
 
-    ! Convert back to string
-    output_string = convert_grid_to_string(grid%data, grid_size)
-
-    ! Print result
-    print '(A)', trim(output_string)
-
-    ! Clean up
-    deallocate(input_string)
-    deallocate(output_string)
-    deallocate(grid)
-
+    ! Cleanup
+    deallocate(sudoku_grid)
+    if (allocated(output_string)) deallocate(output_string)
 end program sudoku_solver

@@ -8,6 +8,7 @@ module grid_interface
     procedure(solve_interface), deferred :: solve
     procedure(print_grid_interface), deferred :: print_grid
     procedure(get_size_interface), deferred :: get_size
+    procedure(get_data_interface), deferred :: get_data
   end type AbstractGrid
   
   abstract interface
@@ -33,6 +34,12 @@ module grid_interface
       class(AbstractGrid), intent(in) :: this
       integer :: size
     end function get_size_interface
+
+    function get_data_interface(this) result(grid_data)
+      import :: AbstractGrid
+      class(AbstractGrid), intent(in) :: this
+      integer, allocatable :: grid_data(:,:)
+    end function get_data_interface
   end interface
   
 end module grid_interface 

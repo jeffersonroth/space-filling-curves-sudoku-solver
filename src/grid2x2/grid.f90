@@ -1,20 +1,20 @@
-module grid
+module grid2x2_module
     use grid_interface
-    use utils
     implicit none
     private
+    public :: Grid2x2
 
-    type, public, extends(AbstractGrid) :: Grid2x2
-        integer, dimension(4, 4) :: data
+    type, extends(AbstractGrid) :: Grid2x2
+        integer :: data(4,4)
     contains
         procedure :: initialize => initialize_2x2
         procedure :: solve => solve_2x2
-        procedure :: print_grid => print_grid_2x2
+        procedure :: print_grid => print_2x2
         procedure :: get_size => get_size_2x2
+        procedure :: get_data => get_data_2x2
     end type Grid2x2
 
 contains
-
     subroutine initialize_2x2(this, grid_data)
         class(Grid2x2), intent(inout) :: this
         integer, intent(in) :: grid_data(:,:)
@@ -25,82 +25,112 @@ contains
         this%data = grid_data
     end subroutine initialize_2x2
 
-    function solve_2x2(this) result(success)
+    recursive function solve_2x2(this) result(success)
         class(Grid2x2), intent(inout) :: this
         logical :: success
-        integer :: i, j, k, l, m
-        logical :: found
-        
+        integer :: i, j, k
+        integer :: row, col
+        logical :: found_empty
+
         success = .true.
-        
-        ! Check each cell
+        found_empty = .false.
+
+        ! Find empty cell
         do i = 1, 4
             do j = 1, 4
                 if (this%data(i,j) == 0) then
-                    ! Try each possible value
-                    do k = 1, 4
-                        found = .false.
-                        
-                        ! Check row
-                        do l = 1, 4
-                            if (this%data(i,l) == k) then
-                                found = .true.
-                                exit
-                            end if
-                        end do
-                        if (found) cycle
-                        
-                        ! Check column
-                        do l = 1, 4
-                            if (this%data(l,j) == k) then
-                                found = .true.
-                                exit
-                            end if
-                        end do
-                        if (found) cycle
-                        
-                        ! Check 2x2 subgrid
-                        block
-                            integer :: subgrid_row, subgrid_col
-                            subgrid_row = ((i-1)/2)*2 + 1
-                            subgrid_col = ((j-1)/2)*2 + 1
-                            do l = 0, 1
-                                do m = 0, 1
-                                    if (this%data(subgrid_row+l, subgrid_col+m) == k) then
-                                        found = .true.
-                                        exit
-                                    end if
-                                end do
-                                if (found) exit
-                            end do
-                        end block
-                        
-                        if (.not. found) then
-                            this%data(i,j) = k
-                            if (solve_2x2(this)) return
-                            this%data(i,j) = 0
-                        end if
-                    end do
-                    success = .false.
+                    row = i
+                    col = j
+                    found_empty = .true.
+                    exit
+                end if
+            end do
+            if (found_empty) exit
+        end do
+
+        ! If no empty cell found, puzzle is solved
+        if (.not. found_empty) return
+
+        ! Try numbers 1-4
+        do k = 1, 4
+            ! Check if number is valid
+            if (is_valid_2x2(this, row, col, k)) then
+                this%data(row,col) = k
+                if (solve_2x2(this)) then
+                    return
+                end if
+                this%data(row,col) = 0
+            end if
+        end do
+
+        success = .false.
+    end function solve_2x2
+
+    function is_valid_2x2(this, row, col, num) result(valid)
+        class(Grid2x2), intent(in) :: this
+        integer, intent(in) :: row, col, num
+        logical :: valid
+        integer :: i, j
+        integer :: box_row, box_col
+
+        ! Check row
+        do i = 1, 4
+            if (this%data(row,i) == num .and. i /= col) then
+                valid = .false.
+                return
+            end if
+        end do
+
+        ! Check column
+        do i = 1, 4
+            if (this%data(i,col) == num .and. i /= row) then
+                valid = .false.
+                return
+            end if
+        end do
+
+        ! Check 2x2 box
+        box_row = 2 * ((row-1)/2) + 1
+        box_col = 2 * ((col-1)/2) + 1
+        do i = box_row, box_row+1
+            do j = box_col, box_col+1
+                if (this%data(i,j) == num .and. (i /= row .or. j /= col)) then
+                    valid = .false.
                     return
                 end if
             end do
         end do
-    end function solve_2x2
 
-    subroutine print_grid_2x2(this)
+        valid = .true.
+    end function is_valid_2x2
+
+    subroutine print_2x2(this)
         class(Grid2x2), intent(in) :: this
-        integer :: i
-        
+        integer :: i, j
+
         do i = 1, 4
-            write(*, '(4i2)') this%data(i,:)
+            do j = 1, 4
+                write(*, '(I1, " ")', advance='no') this%data(i,j)
+            end do
+            write(*,*)
         end do
-    end subroutine print_grid_2x2
+    end subroutine print_2x2
 
     function get_size_2x2(this) result(size)
         class(Grid2x2), intent(in) :: this
         integer :: size
         size = 2
+        ! Use this to avoid unused dummy argument warning
+        associate(dummy => this%data(1,1))
+            ! Do nothing, just use the dummy argument
+        end associate
     end function get_size_2x2
 
-end module grid 
+    function get_data_2x2(this) result(grid_data)
+        class(Grid2x2), intent(in) :: this
+        integer, allocatable :: grid_data(:,:)
+        allocate(grid_data(4,4))
+        grid_data = this%data
+    end function get_data_2x2
+
+end module grid2x2_module 
